@@ -1,8 +1,7 @@
 import java.io.*;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -19,13 +18,16 @@ public class Crawler {
         this.frequency = 50;
         this.threshold = 5000;
     }
-    public static void main(String[] args) throws InterruptedException {
 
-        int seed = 3; // to be read as an argument
+    public static void main(String[] args) throws InterruptedException {
+            //Set<String> x =getImages(parsePage("https://www.javatpoint.com/java-tutorial"));
+        //int seed = Integer.parseInt(args[1]); // to be read as an argument
+        int seed = 10;
+        seed = Math.min(seed,12);
         Set<String> visitedSet = new HashSet<>();
         Set<String> syncVisitedSet = Collections.synchronizedSet(visitedSet);
         CsvWriter dB = new CsvWriter("myUrls.txt", "indexer.txt");
-        final String[] initialSeed = {"https://stackoverflow.com","https://en.wikipedia.org","https://www.javatpoint.com","https://www.nationalgeographic.com","https://www.quora.com","https://www.theguardian.com","https://www.finalthoughts.com","https://www.goodhousekeeping.com"};
+        final String[] initialSeed = {"https://en.wikipedia.org","https://www.Espn.com","https://www.nationalgeographic.com","https://www.quora.com","https://www.answers.com","https://Bleacherreport.com","https://www.theguardian.com","https://www.stackoverflow.com","https://www.javatpoint.com","https://www.bbc.com"};
         ArrayList<Thread> crawlerAssistants = new ArrayList<>();
         for (int i=0; i< seed; i++){
             crawlerAssistants.add(new Thread(new CrawlingThread(dB,initialSeed[i], syncVisitedSet)));
@@ -34,7 +36,7 @@ public class Crawler {
         }
         for (int i=0; i< seed; i++)
             crawlerAssistants.get(i).join();
-        System.out.println("50 pages reached");
+        System.out.println("5000 pages reached");
     }
 
     public static class CsvWriter {
