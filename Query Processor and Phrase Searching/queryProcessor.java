@@ -1,27 +1,49 @@
-package jdbc_demo;
+package controller;
 
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import jdbc_demo.Driver;
+//import jdbc_demo.Driver;
 import javax.servlet.*;
 import javax.servlet.http.*;
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-public class queryProcessor extends HttpServlet{
+/**
+ * Servlet implementation class queryProcessor
+ */
+@WebServlet("/queryProcessor")
+public class queryProcessor extends HttpServlet {
 
-    public void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws IOException {
-        String searchQuery = (request.getParameter("query"));
-        try {
-            doWork(searchQuery);
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		
+		
+		String searchQuery = (request.getParameter("query"));
+		String Country = (request.getParameter("country")); //string format ( ['country name','logo'] )
+		String SearchType = (request.getParameter("searchType")); // options sent (Text,Image)
+		
+		System.out.println(searchQuery);
+		System.out.println(Country);
+		System.out.println(SearchType);
+	   /*try {
+            doWork(searchQuery , Country, SearchType);
         } catch (SQLException e) {
             e.printStackTrace();
-        }
-    }
-
-    public void doWork(String searchQuery) throws SQLException{
+        }*/
+	   
+	   response.sendRedirect("searchPage.jsp");
+	}
+	
+	
+/*
+    public void doWork(String searchQuery,String Country ,String searchType) throws SQLException{
         boolean isPhrase = false;
         Character firstChar,lastChar;
         // Pre-Processing the search query
@@ -81,4 +103,10 @@ public class queryProcessor extends HttpServlet{
             }
         }
     }
+   */
+    public queryProcessor() {
+       
+    }
+
+
 }
