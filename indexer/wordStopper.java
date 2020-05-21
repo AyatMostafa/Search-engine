@@ -9,7 +9,7 @@ public class wordStopper {
   /** The hash set containing the list of stopwords */
   protected static HashSet<String> m_Words = null;
 
-  public void Stopwords() {
+  public static void Stopwords() {
     m_Words = new HashSet<String>();
 
     // Stopwords list from Rainbow
@@ -495,6 +495,7 @@ public class wordStopper {
     add("we");
     add("welcome");
     add("well");
+    add("i'm");
     add("went");
     add("were");
     add("what");
@@ -541,7 +542,7 @@ public class wordStopper {
     add("zero");
   }
 
-  public void add(String word) {
+  public static void add(String word) {
     if (word.trim().length() > 0) {
       m_Words.add(word.trim().toLowerCase());
     }

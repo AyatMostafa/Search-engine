@@ -26,14 +26,14 @@ public class Driver {
 		myStmt = myConn.createStatement();
 		
 		// 3. Execute SQL query
-		myRs = myStmt.executeQuery(query);
+		myStmt.executeUpdate(query);
 	}
 	public static void execute_insert_quere(String query) throws SQLException {
 		// 2. Create a statement
 			myStmt = myConn.createStatement();
 			
 			// 3. Execute SQL query
-			myRs = myStmt.executeQuery(query);
+			myStmt.executeUpdate(query);
 	}
 	public  static ResultSet execute_select_query(String query) throws SQLException {
 		// 2. Create a statement
@@ -51,12 +51,15 @@ public class Driver {
 //				myStmt = myConn.createStatement();
 //				
 //				// 3. Execute SQL query
-//				myRs = myStmt.executeQuery("select * from employees");
-//				
+////				myRs = myStmt.executeQsuery("select * from `employees`");
+////				String q="INSERT INTO `employees`(`last_name`, `first_name`, `email`, `department`, `salary`) VALUES (\"hamdy\",\"ahmed\",\"jfnvdvnf\",\"jnvnfv\",5000);";
+//				String q="UPDATE `employees` SET `first_name`=\"mohamed\" WHERE last_name=\"hamdy\"";
+//				System.out.println(q);
+//				myStmt.executeUpdate(q);
 //				// 4. Process the result set
-//				while (myRs.next()) {
-//					System.out.println(myRs.getString("last_name") + ", " + myRs.getString("first_name"));
-//				}
+////				while (myRs.next()) {
+////					System.out.println(myRs.getString("last_name") + ", " + myRs.getString("first_name"));
+////				}
 //			}
 //			catch (Exception exc) {
 //				exc.printStackTrace();
@@ -75,13 +78,14 @@ public class Driver {
 //				}
 //			}
 //	 }
+//	}
 	}
 //	public static void main(String[] args) throws SQLException {
 //		
-//		Driver d=new Driver();
-//		DB tst= d.new DB();
-//		tst.make_connection();
-////		tst.test_connection();
+////		Driver d=new Driver();
+//		DB tst= new DB();
+////		DB.make_connection();
+//		tst.test_connection();
 //	}
 
 }
