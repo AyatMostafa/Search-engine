@@ -1,14 +1,13 @@
 package jdbc_demo;
 
 import java.util.*;
+import java.io.*; 
 import java.sql.ResultSet;
 import java.sql.SQLException; 
 import static java.util.stream.Collectors.*;
 import static java.util.Map.Entry.*;
 import java.time.LocalDate;
 import java.time.Period;
-import java.io.*; 
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -20,10 +19,10 @@ public class ranker {
 		return Math.log(docsSize / numberOfDocs);
 	}
 	
-	public static Map<String,Double> pageRank() throws SQLException
+	public static void pageRank() throws SQLException
 	{
 		Map <String,Double> PR =  new HashMap<String,Double>();
-		String rank_query = "select RankTable ;" ;
+		String rank_query = "select RankTable;" ;
         ResultSet rank_res = Driver.DB.execute_select_query(rank_query);
         
         Map<String,HashSet<String>> links_to_page = new HashMap<String, HashSet<String>>();
@@ -71,16 +70,21 @@ public class ranker {
                     entry.setValue(rank);
             }
         }
-        return PR;
+        for(Map.Entry<String, Double> entry: PR.entrySet())
+        {
+        	String query = "UPDATE phrase_searching SET rank = " + entry.getValue() + " WHERE url = " + entry.getKey() + " ;";
+        	Driver.DB.execute_select_query(query);
+        }
+ 
 	}
 	
-	public static Map <String,Double> relevanceScore (List<ResultSet> Querywords, double total_number_Doc) throws SQLException
+	public static Map <String,Double> relevanceScore (List<ResultSet> Querywords, int total_number_Doc) throws SQLException
 	{
 		Map <String,Double> URLS =  new HashMap<String,Double>();
-		ResultSet word;
+
 		for(int i = 0; i < Querywords.size(); i++)
 		{
-			word = Querywords.get(i);
+			ResultSet word = Querywords.get(i);
 			if(word.first())
 			{
 				URLS.put(word.getString("url"), 0.0);
@@ -93,7 +97,7 @@ public class ranker {
 				
 		for(int i = 0; i < Querywords.size(); i++)
 		{
-			word = Querywords.get(i);
+			ResultSet word = Querywords.get(i);
 			int docs_contain_word = 0;
 			if(word.last())
 			{
@@ -110,22 +114,22 @@ public class ranker {
 					tf = 2 * tf;
 				double newValue = URLS.get(url)+ (tf*idf);
 				URLS.replace(url, newValue);
-				
 			}
 		}
 		return URLS;
 	}
-	public static Map<String,Double> dateScore(Map <String,Double> scores) throws SQLException
+	
+	public static Map<String,Double> popularity_Date_Score(Map <String,Double> scores) throws SQLException
 	{
 		Set<String> URL =  scores.keySet();
 		Iterator<String> it = URL.iterator();
 		String query = null;
 		if(it.hasNext())
-			query = "SELECT date_of_creation, URL FROM phrase_searching WHERE URL = " + it.next();
+			query = "SELECT rank, date_of_creation, url FROM phrase_searching WHERE url = " + it.next();
         while(it.hasNext())
         {
         	String page = it.next();
-        	query += " OR URL = " + page ;
+        	query += " OR url = " + page ;
         	
         }
         query += " ;" ;
@@ -135,17 +139,20 @@ public class ranker {
 		while(result.next())
 		{
 			String page = result.getString("url");
+			double pagerank = result.getDouble("rank");
 			LocalDate dateOfURL = result.getDate("date_of_creation").toLocalDate();
-			Period diff = Period.between(dateOfURL, now);
 			
-			double newScore = scores.get(page);
-			newScore += 1.0/( diff.getYears()+ (diff.getMonths()/12) + (diff.getDays()/365) );
-			
+			double newScore = scores.get(page) + pagerank;
+			if(dateOfURL != null)
+			{
+				Period diff = Period.between(dateOfURL, now);
+				newScore += 1.0/( diff.getYears()+ (diff.getMonths()/12) + (diff.getDays()/365) );
+			}
         	scores.replace(page, newScore);
 		}
 		return scores;
 	}
-	public static void geographicScore(Map<String, Double> scores, String UserCode) throws IOException, ParseException
+	public static Map<String, Double> geoGraphicScore(Map<String, Double> scores, String UserCode) throws IOException, ParseException
 	{
 //		Map<String, Double> extensions = new HashMap<String, Double>();
 //		File exts = new File("extensions.txt");
@@ -197,25 +204,93 @@ public class ranker {
 	                if(addScore > 0)
 	                {
 	                	double oldScore = (double) entry.getValue();
-	                    entry.setValue((addScore+oldScore));
+	                    entry.setValue((addScore + oldScore));
 	                }
 	            }
 	            
 	        }
 		}
+		return scores;
 	}
 	
-	public static void main(String[] args) 
+	public static Map<String, Double> userPreferables(Map<String, Double> scores, String User_ip) throws SQLException
+	{
+		for(Map.Entry<String, Double> entry: scores.entrySet())
+		{
+			String page = entry.getKey();
+			int secondDot = page.indexOf('.', page.indexOf('.'));
+			int secondSlash = page.indexOf('/', page.indexOf('.'));
+			int end = secondDot < secondSlash ? secondDot : secondSlash;
+			String website = page.substring(page.indexOf('.')+1, end);
+			String query = "SELECT freq FROM user_preferables WHERE user = "+ User_ip + " AND website = "+ website + " ;";
+			ResultSet result = Driver.DB.execute_select_query(query);
+			if(result.first())
+			{
+				double freq = result.getDouble("freq");
+				if(freq > 0)
+					entry.setValue(entry.getValue()+freq);
+			}	
+		}
+		return scores;
+	}
+	
+	public static void main(String[] args) throws SQLException, IOException, ParseException 
 	{	
-//		double total_number_Doc = 5000;
-//		Map<String, Double> sorted = URLS
-//        .entrySet()
-//        .stream()
-//        .sorted(comparingByValue())
-//        .collect(
-//            toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2,
-//                LinkedHashMap::new));
-		
-		
+		String query_count = "SELECT COUNT(*) FROM phrase_searching";
+		ResultSet rs = Driver.DB.execute_select_query(query_count);
+		rs.next();
+		int total_number_Doc = rs.getInt(1);
+		boolean phrase = false , image = false;
+		String UserCode = null;
+		String User_ip = null;
+		Map<String, Double> relevantURL = new HashMap<String, Double>();
+		List<ResultSet> Querywords = null;
+		if(!phrase)
+		{
+			relevantURL = relevanceScore(Querywords, total_number_Doc);
+			relevantURL = popularity_Date_Score(relevantURL);
+			relevantURL = geoGraphicScore(relevantURL, UserCode);
+			relevantURL = userPreferables(relevantURL, User_ip);
+		}
+		else
+		{
+			ResultSet resultPhrase = Querywords.get(0);
+			resultPhrase.beforeFirst();
+			while(resultPhrase.next())
+			{
+				relevantURL.put(resultPhrase.getString("url"), 0.0);
+			}
+			relevantURL = popularity_Date_Score(relevantURL);
+			relevantURL = geoGraphicScore(relevantURL, UserCode);
+			relevantURL = userPreferables(relevantURL, User_ip);
+		}
+		if(image)
+		{
+			Set<String> URL =  relevantURL.keySet();
+			Iterator<String> it = URL.iterator();
+			String query = null;
+			if(it.hasNext())
+				query = "SELECT image_url, page_url From images_urls WHERE page_url = " + it.next();
+	        while(it.hasNext())
+	        {
+	        	String page = it.next();
+	        	query += " OR url = " + page;
+	        }
+	        query += " ;" ;
+	        Map<String, Double> relevantImages = new HashMap<String, Double>();
+			ResultSet result = Driver.DB.execute_select_query(query);
+			result.beforeFirst();
+			while(result.next())
+			{
+				relevantImages.put(result.getString("image_url"), relevantURL.get(result.getString("page_url")));
+			}
+		}
+		Map<String, Double> mostRelevant = relevantURL
+        .entrySet()
+        .stream()
+        .sorted(comparingByValue())
+        .collect(
+            toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2,
+                LinkedHashMap::new));
 	}
 }
