@@ -34,13 +34,13 @@ public class Indexer {
 		//-------------------------------------------------------------------------------------------
 		
 //		// get the files
-		for(int q=1;q<5005;++q) {
+		for(int q=1;q<5006;++q) {
 			hm.clear();
 			vec.clear();
 			header.clear();
 			document="";
 			URL=null;
-			date=null;
+			date="";
 			images_URLs.clear();
 			System.out.println(q);
 			
@@ -52,14 +52,24 @@ public class Indexer {
 		            String[] data = row.split("----");
 		            for (int i=0;i<data.length;++i) 
 		                if(i==0) {
-		                	URL=data[i];
+		                	//URL=data[i];
+		                	for(int r=0;r<data[i].length();++r) {
+		                		if(data[i].charAt(r) == '\"' || data[i].charAt(r)== '\'' || data[i].charAt(r)=='\\')
+		                			continue;
+		                		URL+=data[i].charAt(r);
+		                	}
 		                }
 		                else if(i==1) {
 		                	if(data[i].contains("0000-00-00") || data[i].contains("0000.00.00"))
 		                		date="0000-01-01";
 		                	else {
-		                		date=data[i];
-		                	}
+		                		for(int r=0;r<data[i].length();++r) {
+			                		if(data[i].charAt(r) == '\"' || data[i].charAt(r)== '\'' || data[i].charAt(r)=='\\')
+			                			continue;
+			                		date+=data[i].charAt(r);
+		                		//date=data[i];
+		                	    }
+		                     }
 		                }
 		                else if(i==2) {
 		                	String[] header_split = data[i].split("\\s+");
@@ -70,7 +80,15 @@ public class Indexer {
 		                else {
 		                	String[] content_split = data[i].split("\\s+");
 		                	for (String a : content_split) {
-		                		vec.add(a);
+		                		String aa="";
+		                		for(int r=0;r<a.length();++r) {
+//		                			System.out.println(a);
+			                		if(a.charAt(r) == '\"' || a.charAt(r)== '\'' || a.charAt(r)=='\\')
+			                			continue;
+			                		aa+=a.charAt(r);
+		                		}
+//		                		System.out.println(aa);
+		                		vec.add(aa);
 		                	}
 		                }
 		        }
@@ -101,11 +119,11 @@ public class Indexer {
 					else {
 						hm.put(ret, 1);
 					}
-					document+=ret+=" ";
+					document+=ret;
 				}
 		   }
 		   
-		   
+
 		   //make stem and (not necessary stop, will take much time for nothing help) also for header that will make comparing below right
 		   
 		   for(int i=0;i<header.size();++i) {
@@ -129,20 +147,20 @@ public class Indexer {
 			   //2- if the word is already exits at the same URL, then just update it (get then put)
 			   //3- if not insert it as a new record
 
-			   String get_query= "select `id` from `indexer` where `word` = \""+entry.getKey()+"\" and `url` = \""+URL+"\";"; 
+			  /* String get_query= "select `id` from `indexer` where `word` = \""+entry.getKey()+"\" and `url` = \""+URL+"\";"; 
 			   ResultSet ret_query= Driver.DB.execute_select_query(get_query);
-			   if(!ret_query.isBeforeFirst()) {
+			   if(!ret_query.isBeforeFirst()) {*/
 				   //insert
 				   String insert_query= "insert into `indexer` (`word`, `url`, `header`, `freq`, `date_of_creation`) values ( \""+entry.getKey()+"\" , \""+
 				   URL+"\" , "+is_header+" , "+(double)entry.getValue()/vec.size()+" , \""+date+"\" );";
 				   Driver.DB.execute_insert_quere(insert_query);
-			   }
+			  /* }
 			   else {
 				   ret_query.next();
 				   String update_query = "update `indexer` set `word`= \""+entry.getKey()+"\", `url` = \""+URL+"\", `header` = "+is_header+","
 				   		+ " `freq` = "+(double)entry.getValue()/vec.size()+", `date_of_creation` = \""+date+"\" where `id` = "+ret_query.getString("id")+" ;" ;
 				   Driver.DB.execute_update_quere(update_query);
-			   }
+			   }*/
 			   is_header=false;
 		   }
 		   
@@ -153,18 +171,20 @@ public class Indexer {
 		   //1- get query for the same URL
 		   //2- if the URL is already exits at the same URL, then just update it (get then put)
 		   //3- if not insert it as a new record
-		   String get_query= "select `id` from `phrase_searching` where url = \""+URL+"\";"; 
+		 /*  String get_query= "select `id` from `phrase_searching` where url = \""+URL+"\";"; 
 		   ResultSet ret_query= Driver.DB.execute_select_query(get_query);
-		   if(!ret_query.isBeforeFirst()) {
+		   if(!ret_query.isBeforeFirst()) {*/
 			   //insert
-			   String insert_query= "insert into `phrase_searching` (`url`, `document`, `date_of_creation`) values ( \""+
-			   URL+"\" , \""+document+"\" , \""+date+"\" );";
+			   String insert_query= "insert into `phrase_searching` (`url`, `document`, `date_of_creation`, `rank`) values ( \""+
+			   URL+"\" , \""+document+"\" , \""+date+"\" , "+0+" );";
 			   Driver.DB.execute_insert_quere(insert_query);
-		   }
+		  /* }
 		   else {
+			   //System.out.println();
+			   ret_query.next();
 			   String update_query = "update `phrase_searching` set ( `url` = \""+URL+"\", `document` = \""+document+"\" , `date_of_creation` = \""+date+"\" ) where `id` = "+ret_query.getString("id")+" ;" ;
 			   Driver.DB.execute_update_quere(update_query);
-		   }
+		   }*/
 	   
 		} // looping on all files end
 		
@@ -180,7 +200,7 @@ public class Indexer {
 	        Reader = new BufferedReader(new FileReader("/home/ahmed/education/3rd year/APT/project/from outside/abd/secondrun/myUrls.txt"));
 	        while ((row = Reader.readLine()) != null){
 	            String[] data = row.split("--");
-	            String insert_query= "insert into `RankTable` (`URLfrom` , `URLto`) values (\""+data[0]+"\" , \""+data[1]+"\" );";
+	            String insert_query= "insert into `RankTable` (`URLfrom` , `URLto` ) values (\""+data[0]+"\" , \""+data[1]+"\" );";
 	            Driver.DB.execute_insert_quere(insert_query);
 	        }
 	
@@ -219,3 +239,4 @@ public class Indexer {
 	}
 
 }
+
