@@ -19,7 +19,7 @@ public class Driver {
 	 
 	public static void make_connection() throws SQLException {
 		// 1. Get a connection to database
-		myConn = DriverManager.getConnection("jdbc:mysql://localhost/indexer_DB","root","01021592414ahmed");
+		myConn = DriverManager.getConnection("jdbc:mysql://localhost/indexer_DB","put your database user name here","put your database password here");
 	}
 	public static void execute_update_quere(String query) throws SQLException {
 		// 2. Create a statement

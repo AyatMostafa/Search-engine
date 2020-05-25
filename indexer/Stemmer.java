@@ -396,16 +396,22 @@ class Stemmer
 	     char[] w = new char[501];
 	   	 Stemmer s = new Stemmer();
 		 int kk=0;
+//		 System.out.println(word);
+		 int ch = 0;
 		 while(true)
 		 
 	   { 
-			
-		 int ch = word.charAt(kk++);
+		  if(kk+1<=word.length())
+			  ch = word.charAt(kk++);
+		  else {kk++;if(kk+1>word.length())return "";};
 	      if (Character.isLetter((char) ch))
 	      {
 	         int j = 0;
 	         while(true)
 	         {  ch = Character.toLowerCase((char) ch);
+	         	if((char)ch == '\"') {
+	         		ch = Character.toLowerCase('-');
+	         	}
 	            w[j] = (char) ch;
 	            if (j < 500) j++;
 	            if(kk+1 <= word.length())
