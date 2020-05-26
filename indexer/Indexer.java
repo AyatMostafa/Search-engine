@@ -33,13 +33,14 @@ public class Indexer {
 		String document="";
 		//-------------------------------------------------------------------------------------------
 		
+		Driver.DB.make_connection();
 //		// get the files
 		for(int q=1;q<5006;++q) {
 			hm.clear();
 			vec.clear();
 			header.clear();
 			document="";
-			URL=null;
+			URL="";
 			date="";
 			images_URLs.clear();
 			System.out.println(q);
@@ -104,7 +105,7 @@ public class Indexer {
 			
 			
 			//open connection with DB
-			Driver.DB.make_connection();
+			
 			wordStopper.Stopwords();
 			//loop at each word
 			for(int i=0;i<vec.size();++i) {
@@ -224,14 +225,14 @@ public class Indexer {
         while ((row = Reader1.readLine()) != null)
 	    {
         String[] data = row.split("--");
-		   String get_query1= "select `id` from `images_urls` where `page_url` = \""+data[0]+"\" and `image_url`= \""+data[1]+"\";"; 
-		   ResultSet ret_query1= Driver.DB.execute_select_query(get_query1);
-		   if(!ret_query1.isBeforeFirst()) {
+		//   String get_query1= "select `id` from `images_urls` where `page_url` = \""+data[0]+"\" and `image_url`= \""+data[1]+"\";"; 
+		  // ResultSet ret_query1= Driver.DB.execute_select_query(get_query1);
+		   //if(!ret_query1.isBeforeFirst()) {
 			   //insert
 			   String insert_query= "insert into `images_urls` (`page_url`, `image_url`) values ( \""+
 			   data[0]+"\" , \""+data[1]+"\" );";
 			   Driver.DB.execute_insert_quere(insert_query);
-		   }
+		   //}
 	   }
 	   
 	   //-----------------------------------------------------------------------------------------------------------------//
