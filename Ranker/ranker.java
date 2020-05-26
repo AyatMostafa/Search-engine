@@ -234,19 +234,18 @@ public class ranker {
 		return scores;
 	}
 	
-	public static void main(String[] args) throws SQLException, IOException, ParseException 
+	public static List<String> Ranker(List<ResultSet> Querywords, boolean phrase, boolean image, String UserCode, String User_ip ) throws SQLException, IOException, ParseException
 	{	
-		String query_count = "SELECT COUNT(*) FROM phrase_searching";
-		ResultSet rs = Driver.DB.execute_select_query(query_count);
-		rs.next();
-		int total_number_Doc = rs.getInt(1);
-		boolean phrase = false , image = false;
-		String UserCode = null;
-		String User_ip = null;
 		Map<String, Double> relevantURL = new HashMap<String, Double>();
-		List<ResultSet> Querywords = null;
+		List<String> finalResult = new ArrayList<String>();
+		
 		if(!phrase)
 		{
+			String query_count = "SELECT COUNT(*) FROM phrase_searching";
+			ResultSet rs = Driver.DB.execute_select_query(query_count);
+			rs.next();
+			int total_number_Doc = rs.getInt(1);
+			
 			relevantURL = relevanceScore(Querywords, total_number_Doc);
 			relevantURL = popularity_Date_Score(relevantURL);
 			relevantURL = geoGraphicScore(relevantURL, UserCode);
@@ -264,6 +263,7 @@ public class ranker {
 			relevantURL = geoGraphicScore(relevantURL, UserCode);
 			relevantURL = userPreferables(relevantURL, User_ip);
 		}
+		
 		if(image)
 		{
 			Set<String> URL =  relevantURL.keySet();
@@ -284,13 +284,36 @@ public class ranker {
 			{
 				relevantImages.put(result.getString("image_url"), relevantURL.get(result.getString("page_url")));
 			}
+			Map<String, Double> mostRelevant = relevantImages
+					.entrySet()
+			        .stream()
+			        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+			        .collect(
+			            toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+			                LinkedHashMap::new));
+			
+			for(Map.Entry<String, Double> entry: mostRelevant.entrySet())
+			{
+				finalResult.add(entry.getKey());
+			}
+			return finalResult;
 		}
 		Map<String, Double> mostRelevant = relevantURL
-        .entrySet()
-        .stream()
-        .sorted(comparingByValue())
-        .collect(
-            toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2,
-                LinkedHashMap::new));
+				.entrySet()
+		        .stream()
+		        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+		        .collect(
+		            toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+		                LinkedHashMap::new));
+		
+		for(Map.Entry<String, Double> entry: mostRelevant.entrySet())
+		{
+			finalResult.add(entry.getKey());
+		}
+		return finalResult;
+	}
+	
+	public static void main(String[] args)
+	{	
 	}
 }
