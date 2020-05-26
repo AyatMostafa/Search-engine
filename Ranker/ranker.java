@@ -22,7 +22,7 @@ public class ranker {
 	public static void pageRank() throws SQLException
 	{
 		Map <String,Double> PR =  new HashMap<String,Double>();
-		String rank_query = "select RankTable;" ;
+		String rank_query = "select * FROM RankTable;" ;
         ResultSet rank_res = Driver.DB.execute_select_query(rank_query);
         
         Map<String,HashSet<String>> links_to_page = new HashMap<String, HashSet<String>>();
@@ -73,7 +73,7 @@ public class ranker {
         for(Map.Entry<String, Double> entry: PR.entrySet())
         {
         	String query = "UPDATE phrase_searching SET rank = " + entry.getValue() + " WHERE url = " + entry.getKey() + " ;";
-        	Driver.DB.execute_select_query(query);
+        	Driver.DB.execute_update_quere(query);
         }
  
 	}
@@ -119,7 +119,7 @@ public class ranker {
 		return URLS;
 	}
 	
-	public static Map<String,Double> popularity_Date_Score(Map <String,Double> scores) throws SQLException
+	public static void popularity_Date_Score(Map <String,Double> scores) throws SQLException
 	{
 		Set<String> URL =  scores.keySet();
 		Iterator<String> it = URL.iterator();
@@ -150,9 +150,8 @@ public class ranker {
 			}
         	scores.replace(page, newScore);
 		}
-		return scores;
 	}
-	public static Map<String, Double> geoGraphicScore(Map<String, Double> scores, String UserCode) throws IOException, ParseException
+	public static void geoGraphicScore(Map<String, Double> scores, String UserCode) throws IOException, ParseException
 	{
 //		Map<String, Double> extensions = new HashMap<String, Double>();
 //		File exts = new File("extensions.txt");
@@ -210,10 +209,9 @@ public class ranker {
 	            
 	        }
 		}
-		return scores;
 	}
 	
-	public static Map<String, Double> userPreferables(Map<String, Double> scores, String User_ip) throws SQLException
+	public static void userPreferables(Map<String, Double> scores, String User_ip) throws SQLException
 	{
 		for(Map.Entry<String, Double> entry: scores.entrySet())
 		{
@@ -231,26 +229,24 @@ public class ranker {
 					entry.setValue(entry.getValue()+freq);
 			}	
 		}
-		return scores;
 	}
 	
-	public static void main(String[] args) throws SQLException, IOException, ParseException 
+	public static List<String> Ranker(List<ResultSet> Querywords, boolean phrase, boolean image, String UserCode, String User_ip ) throws SQLException, IOException, ParseException
 	{	
-		String query_count = "SELECT COUNT(*) FROM phrase_searching";
-		ResultSet rs = Driver.DB.execute_select_query(query_count);
-		rs.next();
-		int total_number_Doc = rs.getInt(1);
-		boolean phrase = false , image = false;
-		String UserCode = null;
-		String User_ip = null;
 		Map<String, Double> relevantURL = new HashMap<String, Double>();
-		List<ResultSet> Querywords = null;
+		List<String> finalResult = new ArrayList<String>();
+		
 		if(!phrase)
 		{
+			String query_count = "SELECT COUNT(*) FROM phrase_searching";
+			ResultSet rs = Driver.DB.execute_select_query(query_count);
+			rs.next();
+			int total_number_Doc = rs.getInt(1);
+			
 			relevantURL = relevanceScore(Querywords, total_number_Doc);
-			relevantURL = popularity_Date_Score(relevantURL);
-			relevantURL = geoGraphicScore(relevantURL, UserCode);
-			relevantURL = userPreferables(relevantURL, User_ip);
+			popularity_Date_Score(relevantURL);
+			geoGraphicScore(relevantURL, UserCode);
+			userPreferables(relevantURL, User_ip);
 		}
 		else
 		{
@@ -260,10 +256,11 @@ public class ranker {
 			{
 				relevantURL.put(resultPhrase.getString("url"), 0.0);
 			}
-			relevantURL = popularity_Date_Score(relevantURL);
-			relevantURL = geoGraphicScore(relevantURL, UserCode);
-			relevantURL = userPreferables(relevantURL, User_ip);
+			popularity_Date_Score(relevantURL);
+			geoGraphicScore(relevantURL, UserCode);
+			userPreferables(relevantURL, User_ip);
 		}
+		
 		if(image)
 		{
 			Set<String> URL =  relevantURL.keySet();
@@ -284,13 +281,36 @@ public class ranker {
 			{
 				relevantImages.put(result.getString("image_url"), relevantURL.get(result.getString("page_url")));
 			}
+			Map<String, Double> mostRelevant = relevantImages
+					.entrySet()
+			        .stream()
+			        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+			        .collect(
+			            toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+			                LinkedHashMap::new));
+			
+			for(String url : mostRelevant.keySet())
+			{
+				finalResult.add(url);
+			}
+			return finalResult;
 		}
 		Map<String, Double> mostRelevant = relevantURL
-        .entrySet()
-        .stream()
-        .sorted(comparingByValue())
-        .collect(
-            toMap(e -> e.getKey(), e -> e.getValue(), (e1, e2) -> e2,
-                LinkedHashMap::new));
+				.entrySet()
+		        .stream()
+		        .sorted(Collections.reverseOrder(Map.Entry.comparingByValue()))
+		        .collect(
+		            toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
+		                LinkedHashMap::new));
+		
+		for(String url : mostRelevant.keySet())
+		{
+			finalResult.add(url);
+		}
+		return finalResult;
+	}
+	
+	public static void main(String[] args) throws IOException, ParseException 
+	{	
 	}
 }
