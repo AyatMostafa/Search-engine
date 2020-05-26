@@ -292,9 +292,9 @@ public class ranker {
 			            toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
 			                LinkedHashMap::new));
 			
-			for(Map.Entry<String, Double> entry: mostRelevant.entrySet())
+			for(String url : mostRelevant.keySet())
 			{
-				finalResult.add(entry.getKey());
+				finalResult.add(url);
 			}
 			return finalResult;
 		}
@@ -306,14 +306,14 @@ public class ranker {
 		            toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e2,
 		                LinkedHashMap::new));
 		
-		for(Map.Entry<String, Double> entry: mostRelevant.entrySet())
+		for(String url : mostRelevant.keySet())
 		{
-			finalResult.add(entry.getKey());
+			finalResult.add(url);
 		}
 		return finalResult;
 	}
 	
-	public static void main(String[] args)
+	public static void main(String[] args) throws IOException, ParseException 
 	{	
 	}
 }
