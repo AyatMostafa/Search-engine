@@ -22,7 +22,7 @@ public class ranker {
 	public static void pageRank() throws SQLException
 	{
 		Map <String,Double> PR =  new HashMap<String,Double>();
-		String rank_query = "select RankTable;" ;
+		String rank_query = "select * FROM RankTable;" ;
         ResultSet rank_res = Driver.DB.execute_select_query(rank_query);
         
         Map<String,HashSet<String>> links_to_page = new HashMap<String, HashSet<String>>();
@@ -73,7 +73,7 @@ public class ranker {
         for(Map.Entry<String, Double> entry: PR.entrySet())
         {
         	String query = "UPDATE phrase_searching SET rank = " + entry.getValue() + " WHERE url = " + entry.getKey() + " ;";
-        	Driver.DB.execute_select_query(query);
+        	Driver.DB.execute_update_quere(query);
         }
  
 	}
@@ -119,7 +119,7 @@ public class ranker {
 		return URLS;
 	}
 	
-	public static Map<String,Double> popularity_Date_Score(Map <String,Double> scores) throws SQLException
+	public static void popularity_Date_Score(Map <String,Double> scores) throws SQLException
 	{
 		Set<String> URL =  scores.keySet();
 		Iterator<String> it = URL.iterator();
@@ -150,9 +150,8 @@ public class ranker {
 			}
         	scores.replace(page, newScore);
 		}
-		return scores;
 	}
-	public static Map<String, Double> geoGraphicScore(Map<String, Double> scores, String UserCode) throws IOException, ParseException
+	public static void geoGraphicScore(Map<String, Double> scores, String UserCode) throws IOException, ParseException
 	{
 //		Map<String, Double> extensions = new HashMap<String, Double>();
 //		File exts = new File("extensions.txt");
@@ -210,10 +209,9 @@ public class ranker {
 	            
 	        }
 		}
-		return scores;
 	}
 	
-	public static Map<String, Double> userPreferables(Map<String, Double> scores, String User_ip) throws SQLException
+	public static void userPreferables(Map<String, Double> scores, String User_ip) throws SQLException
 	{
 		for(Map.Entry<String, Double> entry: scores.entrySet())
 		{
@@ -231,7 +229,6 @@ public class ranker {
 					entry.setValue(entry.getValue()+freq);
 			}	
 		}
-		return scores;
 	}
 	
 	public static List<String> Ranker(List<ResultSet> Querywords, boolean phrase, boolean image, String UserCode, String User_ip ) throws SQLException, IOException, ParseException
@@ -247,9 +244,9 @@ public class ranker {
 			int total_number_Doc = rs.getInt(1);
 			
 			relevantURL = relevanceScore(Querywords, total_number_Doc);
-			relevantURL = popularity_Date_Score(relevantURL);
-			relevantURL = geoGraphicScore(relevantURL, UserCode);
-			relevantURL = userPreferables(relevantURL, User_ip);
+			popularity_Date_Score(relevantURL);
+			geoGraphicScore(relevantURL, UserCode);
+			userPreferables(relevantURL, User_ip);
 		}
 		else
 		{
@@ -259,9 +256,9 @@ public class ranker {
 			{
 				relevantURL.put(resultPhrase.getString("url"), 0.0);
 			}
-			relevantURL = popularity_Date_Score(relevantURL);
-			relevantURL = geoGraphicScore(relevantURL, UserCode);
-			relevantURL = userPreferables(relevantURL, User_ip);
+			popularity_Date_Score(relevantURL);
+			geoGraphicScore(relevantURL, UserCode);
+			userPreferables(relevantURL, User_ip);
 		}
 		
 		if(image)
