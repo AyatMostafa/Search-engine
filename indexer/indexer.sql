@@ -54,6 +54,16 @@ CREATE TABLE `user_preferables` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
+
+drop table if exists TRENDS;
+CREATE TABLE `TRENDS` (
+  `Name` VARCHAR (100) not NULL,
+  `Rank` int(11) not NULL,
+  `Country` VARCHAR (100) not NULL,
+   PRIMARY KEY (`Name`,`Country`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+
+
 ALTER DATABASE indexer_DB DEFAULT COLLATE utf8_unicode_ci;
 
 ALTER TABLE indexer CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
@@ -65,6 +75,8 @@ ALTER TABLE RankTable CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 ALTER TABLE images_urls CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 ALTER TABLE user_preferables CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+
+ALTER TABLE TRENDS CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 
 
