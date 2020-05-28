@@ -83,7 +83,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
 	  (new Thread(new queryProcessor())).start();
 		 
 	   try {
-            doWork(searchQuery , Country, SearchType);
+            doWork(searchQuery , code, ifImage);
         } catch (SQLException e) {
             e.printStackTrace();
         }*/
@@ -91,7 +91,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
 	}
 	
 /*
-    public void doWork(String searchQuery,String Country ,String searchType) throws SQLException{
+    public void doWork(String searchQuery, String Country, boolean isImage) throws SQLException{
         boolean isPhrase = false;
         Character firstChar,lastChar;
         // Pre-Processing the search query
@@ -114,7 +114,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
             for (int i = 0; i < words.length; ++i) {
                 if (!ws.isStopword(words[i])) {
                     String ret = st.stem_input_word(words[i]);
-                    String get_query = "select * from indexer where word =" + ret + ";";
+                    String get_query = "SELECT * FROM `indexer` WHERE `word` = '" + ret + "';";
                     ResultSet ret_query = Driver.DB.execute_select_query(get_query);
                     ret_query.first();
                     toRanker.add(ret_query);
@@ -122,25 +122,26 @@ public class queryProcessor extends HttpServlet implements Runnable  {
             }
         }
         else {
-            String phrase = "", firstWord = "";
+            String phrase = "", firstWord = "", stemmed = "";
             boolean gotFirstWord = false;
             for (int i = 0; i < words.length; ++i) {
                 if (!ws.isStopword(words[i])) {
-                    phrase += words[i];
+                    stemmed = st.stem_input_word(words[i]);
+                    phrase += stemmed;
                     if (!gotFirstWord) {
                         firstWord = words[i];
                         gotFirstWord = true;
                     }
                 }
             }
-            String phrase_query = "select * from indexer where word =" + firstWord + ";";
+            String phrase_query = "SELECT * FROM `indexer` WHERE `word` = '" + firstWord + "';";
             ResultSet phrase_res = Driver.DB.execute_select_query(phrase_query);
             if (!phrase_res.next()) {                        // No Results
                 System.out.println("No records found");    //==> to be modified to resemble the way data returns from the ranker
             } else {
                 do {
                     String phraseURL = phrase_res.getString("url");
-                    String getURLContent = "select * from urlTable where url =" + phraseURL + " and content like '%" + phrase + "%';";
+                    String getURLContent = "SELECT * FROM `phrase_searching` WHERE `url` = '" + phraseURL + "' AND `document` like '%" + phrase + "%';";
                     ResultSet urlContents = Driver.DB.execute_select_query(getURLContent);
                     if (!urlContents.next())
                         phrase_res.deleteRow();
@@ -149,6 +150,33 @@ public class queryProcessor extends HttpServlet implements Runnable  {
                 phrase_res.first();
                 toRanker.add(phrase_res);
             }
+        }
+        jdbc_demo.ranker rankerObj= new jdbc_demo.ranker();
+        try {
+            List<String> urlBag = rankerObj.Ranker(toRanker, isPhrase,isImage,Country,"");
+            for (int i=0; i<urlBag.size(); i++){
+                String getURLContent = "SELECT * FROM `phrase_searching` WHERE url = '" + urlBag.get(i) + "';";
+                ResultSet urlContents = Driver.DB.execute_select_query(getURLContent);
+                if (!urlContents.next()) {
+                    System.out.println("No record found");
+                }
+                else{
+                    String glance = urlContents.getString("glance");
+                    String [] data = glance.split("|");
+                    String title = data[0];
+                    String partOfContent = data[1];
+                    // url --> urlBag.get(i)
+                    System.out.println(title);
+                    System.out.println(urlBag.get(i));
+                    System.out.println(partOfContent);
+                    System.out.println("----------------------");
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
     }*/
 
