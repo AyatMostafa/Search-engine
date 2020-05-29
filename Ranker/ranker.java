@@ -21,8 +21,9 @@ public class ranker {
 	
 	public static void pageRank() throws SQLException
 	{
-		Map <String,Double> PR =  new HashMap<String,Double>();
-		String rank_query = "select * FROM RankTable;" ;
+		Driver.DB.make_connection();
+		Map <String,Pair> PR =  new HashMap<String,Pair>();
+		String rank_query = "SELECT * FROM `ranktable`;" ;
         ResultSet rank_res = Driver.DB.execute_select_query(rank_query);
         
         Map<String,HashSet<String>> links_to_page = new HashMap<String, HashSet<String>>();
@@ -34,9 +35,9 @@ public class ranker {
         	String URL_to = rank_res.getString("URLto");
         	PR.put(URL_from, null);
         	PR.put(URL_to, null);
-        	
+	
         	if(!links_to_page.containsKey(URL_to))
-        		links_to_page.put(URL_to, new HashSet<String>());
+        		links_to_page.put(URL_to, new HashSet<String>(Arrays.asList(URL_from)));
         	else
         	{
         		HashSet<String>temp = links_to_page.get(URL_to);
@@ -49,51 +50,50 @@ public class ranker {
             	outDegrees.replace(URL_from, outDegrees.get(URL_from) + 1);
         }
         
-        PR.replaceAll((k,v) -> (1.0/PR.size()));
+        PR.replaceAll((k,v) -> new Pair((1.0/PR.size()) , 1.0/PR.size()) );
         
         int iterations = 10;
         for(int i = 0 ; i < iterations ; i++)
         {
-            for(Map.Entry<String, Double> entry: PR.entrySet())
+            for(Map.Entry<String, Pair> entry: PR.entrySet())
             {
             	double rank = 0;
-                String URL = (String) entry.getKey(); 
-                HashSet<String> in_links = links_to_page.get(URL);
-                Iterator<String> it = in_links.iterator();
-                while(it.hasNext())
+            	String URL = (String) entry.getKey(); 
+            	if(links_to_page.get(URL) != null)
                 {
-                    String in = it.next();
-                    if(outDegrees.containsKey(in) && !in.contentEquals(URL))
-                        rank += (PR.get(in)/outDegrees.get(in));
+	                HashSet<String> in_links = links_to_page.get(URL);
+	                Iterator<String> it = in_links.iterator();
+	                while(it.hasNext())
+	                {
+	                    String in = it.next();
+	                    if(outDegrees.containsKey(in) && !in.contentEquals(URL))
+	                        rank += (PR.get(in).first/outDegrees.get(in));
+	                }
+	                if(rank > 0)
+	                    entry.setValue(new Pair(entry.getValue().first, rank));
                 }
-                if(rank > 0)
-                    entry.setValue(rank);
             }
+            if(i != iterations - 1)
+            	PR.replaceAll((k,v) -> new Pair(v.second, v.second));
         }
-        for(Map.Entry<String, Double> entry: PR.entrySet())
+        int i = 1;
+        for(Map.Entry<String, Pair> entry: PR.entrySet())
         {
-        	String query = "UPDATE phrase_searching SET rank = " + entry.getValue() + " WHERE url = " + entry.getKey() + " ;";
-        	Driver.DB.execute_update_quere(query);
+        	System.out.println(i++);
+        	String update_query = "update `phrase_searching` set  `rank` = "+ entry.getValue().second + " where `url` = \""+ entry.getKey() + "\" ;" ;
+        	Driver.DB.execute_update_quere(update_query);
         }
  
 	}
 	
-	public static Map <String,Double> relevanceScore (List<ResultSet> Querywords, int total_number_Doc) throws SQLException
+	public static Map <String,Double> relevanceScore (List<ResultSet> Querywords) throws SQLException
 	{
 		Map <String,Double> URLS =  new HashMap<String,Double>();
-
-		for(int i = 0; i < Querywords.size(); i++)
-		{
-			ResultSet word = Querywords.get(i);
-			if(word.first())
-			{
-				URLS.put(word.getString("url"), 0.0);
-			}
-			while(word.next())
-			{
-				URLS.put(word.getString("url"), 0.0);	
-			}
-		}
+		String query_count = "SELECT COUNT(*) FROM `phrase_searching`;";
+		ResultSet rs = Driver.DB.execute_select_query(query_count);
+		rs.next();
+		int total_number_Doc = rs.getInt(1);
+		System.out.println(total_number_Doc);
 				
 		for(int i = 0; i < Querywords.size(); i++)
 		{
@@ -103,12 +103,16 @@ public class ranker {
 			{
 				docs_contain_word = word.getRow();
 				word.beforeFirst(); 
+				System.out.println(docs_contain_word);
 			}
 			while(word.next())
 			{
-				double tf = word.getInt("freq");
-				boolean header = word.getBoolean("header");
 				String url = word.getString("url");
+				if(!URLS.containsKey(url))
+					URLS.put(word.getString("url"), 0.0);
+				
+				double tf = word.getDouble("freq");
+				boolean header = word.getBoolean("header");
 				double idf = ranker.IDF(total_number_Doc, docs_contain_word);
 				if(header)
 					tf = 2 * tf;
@@ -125,11 +129,11 @@ public class ranker {
 		Iterator<String> it = URL.iterator();
 		String query = null;
 		if(it.hasNext())
-			query = "SELECT rank, date_of_creation, url FROM phrase_searching WHERE url = " + it.next();
+			query = "SELECT `rank`, `date_of_creation`, `url` FROM `phrase_searching` WHERE `url` = '" + it.next() + "'";
         while(it.hasNext())
         {
         	String page = it.next();
-        	query += " OR url = " + page ;
+        	query += " OR `url` = '" + page + " '";
         	
         }
         query += " ;" ;
@@ -138,12 +142,13 @@ public class ranker {
 		LocalDate now = LocalDate.now();
 		while(result.next())
 		{
+			
 			String page = result.getString("url");
 			double pagerank = result.getDouble("rank");
 			LocalDate dateOfURL = result.getDate("date_of_creation").toLocalDate();
-			
+//			
 			double newScore = scores.get(page) + pagerank;
-			if(dateOfURL != null)
+			if(dateOfURL != LocalDate.of(0001, 01, 01))
 			{
 				Period diff = Period.between(dateOfURL, now);
 				newScore += 1.0/( diff.getYears()+ (diff.getMonths()/12) + (diff.getDays()/365) );
@@ -220,7 +225,7 @@ public class ranker {
 			int secondSlash = page.indexOf('/', page.indexOf('.'));
 			int end = secondDot < secondSlash ? secondDot : secondSlash;
 			String website = page.substring(page.indexOf('.')+1, end);
-			String query = "SELECT freq FROM user_preferables WHERE user = "+ User_ip + " AND website = "+ website + " ;";
+			String query = "SELECT `freq` FROM `user_preferables` WHERE `user` = '"+ User_ip + "' AND `website` = '"+ website + "' ;";
 			ResultSet result = Driver.DB.execute_select_query(query);
 			if(result.first())
 			{
@@ -238,12 +243,7 @@ public class ranker {
 		
 		if(!phrase)
 		{
-			String query_count = "SELECT COUNT(*) FROM phrase_searching";
-			ResultSet rs = Driver.DB.execute_select_query(query_count);
-			rs.next();
-			int total_number_Doc = rs.getInt(1);
-			
-			relevantURL = relevanceScore(Querywords, total_number_Doc);
+			relevantURL = relevanceScore(Querywords);
 			popularity_Date_Score(relevantURL);
 			geoGraphicScore(relevantURL, UserCode);
 			userPreferables(relevantURL, User_ip);
@@ -267,11 +267,11 @@ public class ranker {
 			Iterator<String> it = URL.iterator();
 			String query = null;
 			if(it.hasNext())
-				query = "SELECT image_url, page_url From images_urls WHERE page_url = " + it.next();
+				query = "SELECT `image_url`, `page_url` From `images_urls` WHERE `page_url` = '" + it.next()+ "'";
 	        while(it.hasNext())
 	        {
 	        	String page = it.next();
-	        	query += " OR url = " + page;
+	        	query += " OR `url` = '" + page+ "'";
 	        }
 	        query += " ;" ;
 	        Map<String, Double> relevantImages = new HashMap<String, Double>();
@@ -310,7 +310,9 @@ public class ranker {
 		return finalResult;
 	}
 	
-	public static void main(String[] args) throws IOException, ParseException 
+	public static void main(String[] args) throws SQLException  
 	{	
+		pageRank();
+
 	}
 }
