@@ -21,7 +21,6 @@ public class ranker {
 	
 	public static void pageRank() throws SQLException
 	{
-		//Driver dr= new Driver();
 		Driver.DB.make_connection();
 		Map <String,Pair> PR =  new HashMap<String,Pair>();
 		String rank_query = "SELECT * FROM `ranktable`;" ;
@@ -36,7 +35,7 @@ public class ranker {
         	String URL_to = rank_res.getString("URLto");
         	PR.put(URL_from, null);
         	PR.put(URL_to, null);
-        	
+	
         	if(!links_to_page.containsKey(URL_to))
         		links_to_page.put(URL_to, new HashSet<String>(Arrays.asList(URL_from)));
         	else
@@ -77,8 +76,10 @@ public class ranker {
             if(i != iterations - 1)
             	PR.replaceAll((k,v) -> new Pair(v.second, v.second));
         }
+        int i = 1;
         for(Map.Entry<String, Pair> entry: PR.entrySet())
         {
+        	System.out.println(i++);
         	String update_query = "update `phrase_searching` set  `rank` = "+ entry.getValue().second + " where `url` = \""+ entry.getKey() + "\" ;" ;
         	Driver.DB.execute_update_quere(update_query);
         }
@@ -309,7 +310,9 @@ public class ranker {
 		return finalResult;
 	}
 	
-	public static void main(String[] args) throws IOException, ParseException 
+	public static void main(String[] args) throws SQLException  
 	{	
+		pageRank();
+
 	}
 }
