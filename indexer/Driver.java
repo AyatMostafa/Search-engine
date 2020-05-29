@@ -37,7 +37,7 @@ public class Driver {
 	}
 	public  static ResultSet execute_select_query(String query) throws SQLException {
 		// 2. Create a statement
-		myStmt = myConn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+		myStmt = myConn.createStatement();
 		
 		// 3. Execute SQL query
 		myRs = myStmt.executeQuery(query);

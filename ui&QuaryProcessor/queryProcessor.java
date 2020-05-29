@@ -90,7 +90,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
 	  
 	}
 	
-
+/*
     public void doWork(String searchQuery, String Country, boolean isImage) throws SQLException{
         boolean isPhrase = false;
         Character firstChar,lastChar;
@@ -105,7 +105,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
 
         jdbc_demo.wordStopper ws= new jdbc_demo.wordStopper();
         jdbc_demo.Stemmer st = new jdbc_demo.Stemmer();
-		ws.Stopwords();
+
         //open connection with DB
         Driver.DB.make_connection();
         List<ResultSet> toRanker = new ArrayList<>();
@@ -178,7 +178,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
         } catch (ParseException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
 	
 	 public void run() {
