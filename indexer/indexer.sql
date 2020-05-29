@@ -22,7 +22,14 @@ CREATE TABLE `RankTable` (
     PRIMARY KEY (`id`)
 )   ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
-
+drop table if exists UrlData;
+CREATE TABLE `UrlData` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `URLTitle` LONGTEXT not NULL,
+    `URLInfo` LONGTEXT not NULL,
+    `URLContent` LONGTEXT not NULL,
+    PRIMARY KEY (`id`)
+)   ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
 drop table if exists phrase_searching;
 CREATE TABLE `phrase_searching` (
@@ -31,7 +38,6 @@ CREATE TABLE `phrase_searching` (
   `document` LONGTEXT not NULL,
   `date_of_creation` date DEFAULT NULL,
   `rank`  double NOT NULL,
-  `glance`  longText NOT NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
@@ -78,6 +84,8 @@ ALTER TABLE images_urls CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 ALTER TABLE user_preferables CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 ALTER TABLE TRENDS CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+
+ALTER TABLE UrlData CONVERT TO CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 
 
