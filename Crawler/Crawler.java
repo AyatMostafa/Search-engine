@@ -1,3 +1,5 @@
+import jdbc_demo.Driver;
+
 import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
@@ -19,14 +21,38 @@ public class Crawler {
         this.threshold = 5000;
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
             //Set<String> x =getImages(parsePage("https://www.javatpoint.com/java-tutorial"));
         //int seed = Integer.parseInt(args[1]); // to be read as an argument
         int seed = 10;
         seed = Math.min(seed,12);
         Set<String> visitedSet = new HashSet<>();
         Set<String> syncVisitedSet = Collections.synchronizedSet(visitedSet);
-        CsvWriter dB = new CsvWriter("myUrls.txt", "indexer.txt");
+        List<String>  urlQueue = new ArrayList<>();
+        FileWriter myUrls = new FileWriter ("myUrls.txt",true);
+        FileWriter indexer = new FileWriter("indexer.txt",true);
+        //if (myUrls.exists() || indexer.exists()) {
+        int num =0;
+        BufferedReader Reader = null;
+        try {
+            String row;
+            Reader = new BufferedReader(new FileReader("myUrls.txt"));
+            while ((row = Reader.readLine()) != null){
+                String[] data = row.split("--");
+                syncVisitedSet.add(data[0]);
+                urlQueue.add(data[1]);
+                num ++;
+            }
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        //}
+        CsvWriter dB = new CsvWriter(myUrls, indexer, urlQueue, num);
         final String[] initialSeed = {"https://en.wikipedia.org","https://www.Espn.com","https://www.nationalgeographic.com","https://www.quora.com","https://www.answers.com","https://Bleacherreport.com","https://www.theguardian.com","https://www.stackoverflow.com","https://www.javatpoint.com","https://www.bbc.com"};
         ArrayList<Thread> crawlerAssistants = new ArrayList<>();
         for (int i=0; i< seed; i++){
@@ -47,38 +73,34 @@ public class Crawler {
         private List<String> urlStore;
         private Random rand = new Random();
 
-        public CsvWriter(String urlFilePath, String indexerFilePath) {
-            try  {
-                urlWriter = new PrintWriter(new File(java.lang.String.valueOf(urlFilePath)));
-                indexerWriter = new PrintWriter(new File(java.lang.String.valueOf(indexerFilePath)));
-                csvReader = new BufferedReader(new FileReader(urlFilePath));
-                urlStore = new ArrayList<>();
-                count = 1;
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+        public CsvWriter(FileWriter urlFile, FileWriter indexerFile, List<String> mainQueue, int count) {
+            urlWriter = new PrintWriter(urlFile);
+            indexerWriter = new PrintWriter(indexerFile);
+            //csvReader = new BufferedReader(new FileReader(urlFilePath));
+            urlStore = mainQueue;
+            this.count = count;
         }
         public int getCount(){
             return count;
         }
         public List<String> getStore(){ return urlStore; }
-        public int next() {int s = getStore().size(); if (s>0) return ThreadLocalRandom.current().nextInt(s); else return -1;}
+        public int next() {int s = getStore().size(); if (s>0) return ThreadLocalRandom.current().nextInt(s-1); else return -1;}
         public void incrementCount(){
             count ++;
         }
-        public BufferedReader getCsvReader(){return  csvReader;}
-        public void writeData(String row, boolean url) {
+        //public BufferedReader getCsvReader(){return  csvReader;}
+        public void writeData(String row, boolean url, String base) {
             if(url) {
-                //urlSb = new StringBuilder();
-                //urlSb.append(row);
-                //urlSb.append("\r\n");
-                //urlWriter.write(urlSb.toString());
-                //urlWriter.flush();
+                urlSb = new StringBuilder();
+                urlSb.append(base+"--"+row);
+                urlSb.append("\r\n");
+                urlWriter.write(urlSb.toString());
+                urlWriter.flush();
                 urlStore.add(row);
             }
             else{
                 indexerSb = new StringBuilder();
-                indexerSb.append(row);
+                indexerSb.append(base+"--"+row);
                 indexerSb.append("\r\n");
                 //System.out.println(count);
                 indexerWriter.write(indexerSb.toString());

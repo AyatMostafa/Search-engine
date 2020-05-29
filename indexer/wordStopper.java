@@ -9,7 +9,7 @@ public class wordStopper {
   /** The hash set containing the list of stopwords */
   protected static HashSet<String> m_Words = null;
 
-  public static void Stopwords() {
+  public void Stopwords() {
     m_Words = new HashSet<String>();
 
     // Stopwords list from Rainbow

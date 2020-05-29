@@ -1,6 +1,7 @@
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
-
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -39,16 +40,12 @@ public class CrawlingThread implements Runnable {
             if (firstCrawl) {
                 url = firstSeed;
                 firstCrawl = false;
-                synchronized (writer) {
-                    currentCount = writer.getCount();
-                    writer.incrementCount();
-                }
             } else {
                 int next = writer.next();
                 if (next == -1 || next == writer.getStore().size()) continue;
                 synchronized (writer) {
-                    currentCount = writer.getCount();
-                    writer.incrementCount();
+                    //currentCount = writer.getCount();
+                    //writer.incrementCount();
                     if (writer.getCount() <= 5000) {
                         if ((url = writer.getStore().get(next)) != null) {
                             while (visitedSet.contains(url) && (url != null)) {
@@ -67,25 +64,28 @@ public class CrawlingThread implements Runnable {
                     visitedSet.add(url);
                 }
             }
+            if(((Character)url.charAt(url.length()-1)).equals("/")) url = url.substring(0,url.length()-1);
             String html = parsePage(url);
             String data = getPageDetails(html);
-            String id = ((Integer) currentCount).toString();
-            String details = url + ", " + data;
+            String details = url + "----" + data;
             Set<String> urls = getUrls(html, url);
             Set<String> images = getImages(html,url);
+            String stripped = Jsoup.clean(html, Whitelist.none());
             synchronized (writer) {
                 //writer.writeData(details,false);
+                if (!stripped.isEmpty()){
+                    currentCount = writer.getCount();
+                    writer.incrementCount();
+                }
                 Iterator<String> itr = images.iterator();
                 while (itr.hasNext())
-                    writer.writeData(itr.next(), false);
-                System.out.println(details + " Thread Name " + Thread.currentThread().getName());
-            }
-            synchronized (writer) {
-                Iterator<String> itr = urls.iterator();
+                    writer.writeData(itr.next(), false, url);
+                System.out.println(details + " Thread Name " + Thread.currentThread().getName() + " "+currentCount);
+                itr = urls.iterator();
                 while (itr.hasNext())
-                    writer.writeData(itr.next(), true);
+                    writer.writeData(itr.next(), true, url);
             }
-            String stripped = Jsoup.clean(html, Whitelist.none());
+            String id = ((Integer) currentCount).toString();
             String bold = getPageHeaders(url);
             PrintWriter contentWriter = null, boldWriter = null;
             String current = id + ".txt";
@@ -97,7 +97,7 @@ public class CrawlingThread implements Runnable {
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
-            contentWriter.println(details+", "+stripped);
+            contentWriter.println(details+stripped);
             boldWriter.println(bold);
             contentWriter.close();
             boldWriter.close();
@@ -131,22 +131,25 @@ public class CrawlingThread implements Runnable {
         String details = "";
         if (date.find()) {
             details += date.group(1);
-            details = details.substring(0, 11) + ", ";
+            details = details.substring(0, 11) + "----";
         } else
-            details += "0000-00-00, ";
+            details += "0000-00-00----";
         if (title.find())
-            details += title.group(1);
+            details += title.group(1)+"----";
         else
-            details += "No Title";
+            details += "No Title----";
         return details;
     }
 
     public String getPageHeaders(String html) {
-        Pattern p2 = Pattern.compile("<h2>(.+?)</h2>");
-        Matcher bold = p2.matcher(html);
-        String headerText = "";
-        while (bold.find())
-            headerText += (bold.group(1)) + ",";
+        //Pattern p2 = Pattern.compile("<h2>(.+?)</h2>");
+        //Matcher bold = p2.matcher(html);
+        Document doc = Jsoup.parse(html);
+        Elements hTags = doc.select("h1, h2, h3, h4, h5, h6");
+        String headerText = hTags.text();
+        //String headerText = "";
+        //while (bold.find())
+         //   headerText += (bold.group(1)) + ",";
         return headerText;
     }
 
@@ -158,8 +161,15 @@ public class CrawlingThread implements Runnable {
         while (links.find()){ //&& limit < 20
             String url = links.group(1);
             //System.out.println("working");
-            if (!url.startsWith("http"))
-                url = baseURL + '/' + url;
+            if (url.startsWith("http") && !url.startsWith("https"))
+                url.replaceFirst("http","https");
+            else if (url.startsWith("//"))
+                url = "https:" + url;
+            else if (url.startsWith("/"))
+                url = baseURL + url;
+            else if (!url.startsWith("https"))
+                url = baseURL + '/' +url;
+
             urls.add(url); // this variable should contain the URL details to be stored
             //limit ++;
         }
@@ -177,9 +187,15 @@ public class CrawlingThread implements Runnable {
             Matcher src = p2.matcher(img);
             Matcher alt = p3.matcher(img);
             if (src.find()) {
-                toRet = "https:"+src.group(1);
+                if(!src.group(1).startsWith("https"))
+                    if (src.group(1).startsWith("//upload.wikimedia.org"))
+                        toRet = "https:"+src.group(1);
+                    else
+                        toRet = baseURL+src.group(1);
+                else
+                    toRet = src.group(1);
                 if (alt.find()) {
-                    toRet = alt.group(1) + ", " + toRet;
+                    //toRet = alt.group(1) + ", " + toRet;
                     imageURLS.add(toRet);
 //                    try {
 //                        URL url = new URL(toRet.split(",")[1]);
