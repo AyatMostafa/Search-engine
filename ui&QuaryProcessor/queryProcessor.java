@@ -105,7 +105,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
 
         jdbc_demo.wordStopper ws= new jdbc_demo.wordStopper();
         jdbc_demo.Stemmer st = new jdbc_demo.Stemmer();
-
+		ws.Stopwords();
         //open connection with DB
         Driver.DB.make_connection();
         List<ResultSet> toRanker = new ArrayList<>();
