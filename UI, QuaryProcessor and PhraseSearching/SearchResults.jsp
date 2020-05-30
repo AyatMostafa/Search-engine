@@ -97,8 +97,7 @@
 	<option value="['Belize','BZ']">Belize</option>
 	<option value="['Benin','BJ']">Benin</option>
 	<option value="['Bermuda','BM']">Bermuda</option>
-	<option value="['Bhutan','BT']">Bhutan</option>
-	
+	<option value="['Bhutan','BT']">Bhutan</option>	
 	<option value="['Burkina Faso','BF']">Burkina Faso</option>
 	<option value="['Burundi','BI']">Burundi</option>
 	<option value="['Cambodia','KH']">Cambodia</option>
@@ -295,6 +294,9 @@
 
 	<br>
 	<input type="submit" value="search"  />
+</form>
+
+<form action="<%=request.getContextPath()%>/userRanks" method="get" id="SearchResults">
 	
 <%  
 String spageid=request.getParameter("page");  
@@ -312,14 +314,15 @@ if(pageid!=1)
 }
 
 ArrayList<String> lst=(ArrayList<String>) request.getAttribute("URLList");
+
 if (lst != null) {
 URL_Data urlObj=null;
-for(int i=pageid ;i<=end;i++){  
+for(int i=pageid-1 ;i<end;i++){  
 	if(i<lst.size())
 	{
 		urlObj=URL_Data.getRecords(lst.get(i));
 		
-		out.print("<a href="+urlObj.getURL()+">"+urlObj.getTitle()+"</a><br>"+urlObj.getpartOfContent()+"<br><br>");  
+		out.print("<a type=\"submit\" href="+urlObj.getURL()+">"+urlObj.getTitle()+"</a><br>"+urlObj.getpartOfContent()+"<br><br>");  
 
 	}
 	else{
@@ -327,16 +330,21 @@ for(int i=pageid ;i<=end;i++){
 		}
 	
 }
+
+
 double sizee=lst.size()/ 10;
 	double pageNum=(Math.ceil(sizee));
-for(int i=1 ;i<=pageNum;i++){  
-    out.print("<a href=view.jsp?page"+i+">"+i+"</a>");  
+	request.setAttribute("URLList",lst);
+for(int i=1 ;i<=pageNum;i++){  	
+    out.print("<a href=SearchResults.jsp?page="+i+ "?lst=>"+i+"</a>");  
 }
 }else{
     out.println("no URLS are found");
 }  
   
-%> 	
+
+ %>	
+</form>
 	
 
 </body>
