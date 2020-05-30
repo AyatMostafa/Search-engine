@@ -25,8 +25,8 @@ CREATE TABLE `RankTable` (
 drop table if exists UrlData;
 CREATE TABLE `UrlData` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
+    `URLLink` LONGTEXT not NULL,
     `URLTitle` LONGTEXT not NULL,
-    `URLInfo` LONGTEXT not NULL,
     `URLContent` LONGTEXT not NULL,
     PRIMARY KEY (`id`)
 )   ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
