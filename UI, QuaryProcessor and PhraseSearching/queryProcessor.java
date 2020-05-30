@@ -23,6 +23,8 @@ import java.util.*;
 import java.sql.Connection;
 import com.mysql.jdbc.PreparedStatement;
 import com.sun.xml.bind.v2.runtime.RuntimeUtil.ToStringAdapter;
+import jdbc_demo.Driver;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -153,26 +155,7 @@ public class queryProcessor extends HttpServlet implements Runnable  {
         }
         jdbc_demo.ranker rankerObj= new jdbc_demo.ranker();
         try {
-            List<String> urlBag = rankerObj.Ranker(toRanker, isPhrase,isImage,Country,"");
-            for (int i=0; i<urlBag.size(); i++){
-                String getURLContent = "SELECT * FROM `phrase_searching` WHERE url = '" + urlBag.get(i) + "';";
-                ResultSet urlContents = Driver.DB.execute_select_query(getURLContent);
-                if (!urlContents.next()) {
-                    System.out.println("No record found");
-                }
-                else{
-                    String glance = urlContents.getString("glance");
-                    String [] data = glance.split("|");
-                    String title = data[0];
-                    String partOfContent = data[1];
-                    // url --> urlBag.get(i)
-                    System.out.println(title);
-                    System.out.println(urlBag.get(i));
-                    System.out.println(partOfContent);
-                    System.out.println("----------------------");
-                }
-            }
-
+            int resultCount = rankerObj.Ranker(toRanker, isPhrase,isImage,Country,"");
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ParseException e) {
@@ -616,8 +599,26 @@ public class queryProcessor extends HttpServlet implements Runnable  {
 				"	<input type=\"submit\" value=\"search\"  /><br><br>";
     	return message;
     }
-    
-	
+
+	public static void saveResults (String url) throws SQLException {
+		String getURLContent = "SELECT * FROM `phrase_searching` WHERE url = '" + url + "';";
+		ResultSet urlContents = Driver.DB.execute_select_query(getURLContent);
+		if (!urlContents.next()) {
+			System.out.println("No records found");
+		}
+		else{
+			String glance = urlContents.getString("glance");
+			String [] data = glance.split("|");
+			String title = data[0];
+			String partOfContent = data[1];
+			String insert_query= "insert into `UrlData` (`URLLink`, `URLTitle`, `URLContent`) values ('" +url+"','" +title + "','" +partOfContent +"');";
+			Driver.DB.execute_insert_quere(insert_query);
+//			System.out.println(title);
+//			System.out.println(urlBag.get(i));
+//			System.out.println(partOfContent);
+//			System.out.println("-------------------------------");
+		}
+	}
 	
 	
     public queryProcessor() {

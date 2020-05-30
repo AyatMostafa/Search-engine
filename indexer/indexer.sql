@@ -38,6 +38,7 @@ CREATE TABLE `phrase_searching` (
   `document` LONGTEXT not NULL,
   `date_of_creation` date DEFAULT NULL,
   `rank`  double NOT NULL,
+  `glance` LONGTEXT not NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 
