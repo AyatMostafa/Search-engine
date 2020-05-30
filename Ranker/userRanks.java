@@ -1,26 +1,15 @@
-package jdbc_demo;
+package controller;
 
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.Properties;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.omg.CORBA.INTERNAL;
-
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.util.CoreMap;
-
-import javax.servlet.http.HttpServletRequest;
 
 @WebServlet("/userRanks")
 public class userRanks extends HttpServlet {
@@ -45,6 +34,13 @@ public class userRanks extends HttpServlet {
         }
         
         String URL = (request.getParameter("url"));
+        String trimmed = URL.substring(URL.indexOf("www.")+4,URL.lastIndexOf('.'));
+        try {
+			updateUser(trimmed,remoteAddr);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         
 	}
 
