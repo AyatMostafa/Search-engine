@@ -2,8 +2,6 @@ package controller;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;  
-import java.util.List;
 
 public class URL_Data {
 
@@ -18,10 +16,10 @@ public class URL_Data {
 		
     } 
     public static URL_Data getRecords(String url){    
-    	URL_Data urlObj=null;
+    	URL_Data urlObj=null;				
     	try {
     		Driver.DB.make_connection();
-			String getURLContent = "SELECT `glance` FROM `phrase_searching` WHERE url = '" + url + "';";
+			String getURLContent = "SELECT `glance` FROM `phrase_searching` WHERE url = \"" + url + "\";";
             ResultSet urlContents = Driver.DB.execute_select_query(getURLContent);
             
             if (!urlContents.next()) {

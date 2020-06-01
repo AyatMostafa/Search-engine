@@ -1,11 +1,10 @@
-package jdbc_demo;
+package controller;
 
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.*;
-import org.json.simple.parser.ParseException;
-import jdbc_demo.URL_Data;
+import controller.URL_Data;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import javax.servlet.ServletException;
@@ -14,6 +13,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.stream.events.Namespace;
+import controller.cacheFormer;
+import com.google.protobuf.TextFormat.ParseException;
 
 import java.util.*;
 import edu.stanford.nlp.pipeline.*;
@@ -87,7 +88,7 @@ public class queryProcessor extends HttpServlet implements Runnable {
 
 
       //jdbc_demo.wordStopper ws= new jdbc_demo.wordStopper();
-      jdbc_demo.Stemmer st = new jdbc_demo.Stemmer();
+      controller.Stemmer st = new controller.Stemmer();
 
       //open connection with DB
       try {
@@ -160,37 +161,10 @@ public class queryProcessor extends HttpServlet implements Runnable {
      // jdbc_demo.ranker rankerObj= new jdbc_demo.ranker();
       try {
          List<String> urlBag = ranker.Ranker(toRanker, isPhrase,ifImage,code,"");
-
-         request.setAttribute("URLList", urlBag); 
-         getServletConfig().getServletContext().getRequestDispatcher("/SearchResults.jsp?page=1").forward(request,response);
+         cacheFormer.MakeCache(urlBag);         
+         getServletConfig().getServletContext().getRequestDispatcher("/SearchResults.jsp?page=1?pagenum="+urlBag.size()).forward(request,response);
          
-         
-//          for (int i=0; i<urlBag.size(); i++){
-//              String getURLContent = "SELECT * FROM `phrase_searching` WHERE url = '" + urlBag.get(i) + "';";
-//              ResultSet urlContents = Driver.DB.execute_select_query(getURLContent);
-//              if (!urlContents.next()) {
-//                  System.out.println("No record found");
-//              }
-//              else{
-//                  String glance = urlContents.getString("glance");
-//                  String [] data = glance.split("|");
-//                  String title = data[0];
-//                  String partOfContent = data[1];
-//                  //url --> urlBag.get(i)             
-//                  List<URL_Data> list=new ArrayList<URL_Data>(); 
-//                  URL_Data url=new URL_Data(title,title,partOfContent);  
-//                  list.add(url);  
-//                  
-//                  String date = urlContents.getString("word");
-//                  System.out.println(date);
-//                  System.out.println(urlBag.get(i));
-//                  System.out.println("----------------------");
-//              }
-//          }
-//
       } catch (IOException e) {
-          e.printStackTrace();
-      } catch (ParseException e) {
           e.printStackTrace();
       } catch (SQLException e) {
     // TODO Auto-generated catch block
