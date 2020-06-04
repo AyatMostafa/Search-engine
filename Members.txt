@@ -1,0 +1,10 @@
+﻿Semester Students
+
+
+Name                       Sec                  BN
+
+
+Ahmed Hamdy           1                     1
+Ayat Mostafa              1                    11
+Reham Gamal            1                    21
+Mohamed Abdullah    2                    17

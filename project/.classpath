@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="lib" path="Lib/annotations-api.jar"/>
+	<classpathentry kind="lib" path="Lib/ehcache-2.10.5.jar"/>
+	<classpathentry kind="lib" path="Lib/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="Lib/mysql-connector-java-8.0.20.jar"/>
+	<classpathentry kind="lib" path="Lib/servlet-api.jar"/>
+	<classpathentry kind="lib" path="Lib/slf4j-api-1.7.25.jar"/>
+	<classpathentry kind="lib" path="Lib/slf4j-jdk14-1.7.25.jar"/>
+	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/ehcache-2.10.5.jar"/>
+	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/mysql-connector-java-8.0.20.jar"/>
+	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/slf4j-api-1.7.25.jar"/>
+	<classpathentry kind="lib" path="WebContent/WEB-INF/lib/slf4j-jdk14-1.7.25.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
