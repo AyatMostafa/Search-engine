@@ -52,7 +52,7 @@
   background-color: #eee;
 }
 
-#micro {
+#micro.ayat {
   position: absolute;
   margin-top: 0.35%;
   margin-left: -3%;
@@ -76,7 +76,7 @@
 <h2>Find All What You Want</h2>
 
 <input type="text" id="myInput" name="query" onkeyup="myFunction()" placeholder="Search for .." title="Search" required>
-<button type="button" id="micro" style="display: none"><i class="fa fa-microphone"  aria-hidden="true" ></i></button>
+<button type="button" id="micro.ayat" style="display: none"><i class="fa fa-microphone"  aria-hidden="true" ></i></button>
 <br>
 <select id="Country" name="country" required >
     <option value="">-- sellect the Country --</option>
@@ -313,7 +313,7 @@
 	{	
   	    const recognition = new SpeechRecognition();
         recognition.continuous = true;
-        
+        console.log("Ayat Mostafa");
         if(searchForm)
         	document.querySelector("#micro").style.display = "inline-block";
            // searchForm.insertAdjacentHTML("beforeend", '<button type="button" id="micro"><i class="fa fa-microphone" aria-hidden="true" ></i></button>');
