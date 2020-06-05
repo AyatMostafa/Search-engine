@@ -1,3 +1,5 @@
+package Crawler;
+
 import org.jsoup.Jsoup;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.nodes.Document;
@@ -21,9 +23,9 @@ public class CrawlingThread implements Runnable {
     private boolean firstCrawl;
     private String firstSeed;
 
-    public CrawlingThread(Crawler.CsvWriter writer, String firstSeed, Set<String> visitedSet) {
+    public CrawlingThread(Crawler.CsvWriter writer, String firstSeed, Set<String> visitedSet, boolean firstCrawl) {
         this.writer = writer;
-        firstCrawl = true;
+        this.firstCrawl = firstCrawl;
         this.firstSeed = firstSeed;
         this.visitedSet = visitedSet;
     }
@@ -80,7 +82,7 @@ public class CrawlingThread implements Runnable {
                 Iterator<String> itr = images.iterator();
                 while (itr.hasNext())
                     writer.writeData(itr.next(), false, url);
-                System.out.println(details + " Thread Name " + Thread.currentThread().getName() + " "+currentCount);
+                System.out.println(details + " Thread Name " + Thread.currentThread().getName());
                 itr = urls.iterator();
                 while (itr.hasNext())
                     writer.writeData(itr.next(), true, url);
