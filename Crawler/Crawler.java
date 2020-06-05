@@ -1,3 +1,5 @@
+package Crawler;
+
 import jdbc_demo.Driver;
 
 import java.io.*;
@@ -11,6 +13,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.Scanner;
 
 public class Crawler {
     private float frequency;
@@ -22,10 +25,12 @@ public class Crawler {
     }
 
     public static void main(String[] args) throws InterruptedException, IOException {
-            //Set<String> x =getImages(parsePage("https://www.javatpoint.com/java-tutorial"));
-        //int seed = Integer.parseInt(args[1]); // to be read as an argument
-        int seed = 10;
-        seed = Math.min(seed,12);
+        System.out.println("Enter the needed number of crawling assistants, please .. (Max 10!)");
+        Scanner in = new Scanner(System.in);
+        int seed = Integer.parseInt(in.nextLine());
+        //int seed = Integer.parseInt(args[0]); // to be read as an argument
+
+        seed = Math.min(seed,10);
         Set<String> visitedSet = new HashSet<>();
         Set<String> syncVisitedSet = Collections.synchronizedSet(visitedSet);
         List<String>  urlQueue = new ArrayList<>();
@@ -53,10 +58,13 @@ public class Crawler {
 
         //}
         CsvWriter dB = new CsvWriter(myUrls, indexer, urlQueue, num);
-        final String[] initialSeed = {"https://en.wikipedia.org","https://www.Espn.com","https://www.nationalgeographic.com","https://www.quora.com","https://www.answers.com","https://Bleacherreport.com","https://www.theguardian.com","https://www.stackoverflow.com","https://www.javatpoint.com","https://www.bbc.com"};
+        final String[] initialSeed = {"https://www.geeksforgeeks.org","https://www.Espn.com","https://www.nationalgeographic.com","https://www.quora.com","https://www.answers.com","https://Bleacherreport.com","https://www.theguardian.com","https://www.stackoverflow.com","https://www.javatpoint.com","https://www.bbc.com"};
         ArrayList<Thread> crawlerAssistants = new ArrayList<>();
+        boolean firstCrawl;
         for (int i=0; i< seed; i++){
-            crawlerAssistants.add(new Thread(new CrawlingThread(dB,initialSeed[i], syncVisitedSet)));
+            firstCrawl = true;
+            if(syncVisitedSet.contains(initialSeed[i])) firstCrawl = false;
+            crawlerAssistants.add(new Thread(new CrawlingThread(dB,initialSeed[i], syncVisitedSet, firstCrawl)));
             crawlerAssistants.get(i).setName(((Integer)i).toString());
             crawlerAssistants.get(i).start();
         }
