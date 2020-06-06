@@ -1,0 +1,8 @@
+1- A Google drive link to crawled pages:-
+      https://drive.google.com/file/d/1dnb_tASI2xlxoMoPfmGE-uNvBE02Iol-/view
+
+2- Beside installing the included jar file in the created project to run the crawler properly, two folders named
+   a) content	b) bold  must be created in the project directory, these will hold the output of
+   the crawler together with two automatically generated text files, which are: 
+   myURLS.txt : this carries From--To mapping of the urls (for in and out degree calculation during ranking)
+   indexer.txt: this carries image URLS corresponding to each crawled web page.
